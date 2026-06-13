@@ -23,7 +23,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install google-generativeai
+        run: pip install google-genai
 
       # メイン枠: 07:00 JST または手動実行（必ずコミット）
       - name: Generate (main)

@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import google.generativeai as genai
+from google import genai
 
 PROGRAMS_DIR = Path("programs")
 
@@ -40,10 +40,11 @@ COMMIT: <英語のコミットメッセージ（動詞で始める例: Add merge
 
 
 def generate_one() -> tuple[str, str, str]:
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.0-flash")
-
-    response = model.generate_content(PROMPT)
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=PROMPT,
+    )
     text = response.text
 
     filename_match = re.search(r"^FILE:\s*(\S+\.py)", text, re.MULTILINE)
