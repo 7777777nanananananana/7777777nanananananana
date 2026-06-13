@@ -23,13 +23,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install anthropic
+        run: pip install google-generativeai
 
       # メイン枠: 07:00 JST または手動実行（必ずコミット）
       - name: Generate (main)
         if: github.event.schedule == '0 22 * * *' || github.event_name == 'workflow_dispatch'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SKIP_CHANCE: '0'
         run: |
           git config user.email "7nana7nana7nana777@gmail.com"
@@ -40,7 +40,7 @@ jobs:
       - name: Generate (bonus)
         if: github.event.schedule != '0 22 * * *' && github.event_name != 'workflow_dispatch'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SKIP_CHANCE: '0.65'
         run: |
           git config user.email "7nana7nana7nana777@gmail.com"

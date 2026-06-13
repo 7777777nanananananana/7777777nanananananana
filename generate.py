@@ -6,7 +6,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import anthropic
+import google.generativeai as genai
 
 PROGRAMS_DIR = Path("programs")
 
@@ -40,15 +40,11 @@ COMMIT: <英語のコミットメッセージ（動詞で始める例: Add merge
 
 
 def generate_one() -> tuple[str, str, str]:
-    client = anthropic.Anthropic()
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-2.0-flash")
 
-    response = client.messages.create(
-        model="claude-opus-4-8",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": PROMPT}],
-    )
-
-    text = response.content[0].text
+    response = model.generate_content(PROMPT)
+    text = response.text
 
     filename_match = re.search(r"^FILE:\s*(\S+\.py)", text, re.MULTILINE)
     filename = (
@@ -80,13 +76,11 @@ def run(cmd: list[str]) -> None:
 
 
 def main() -> None:
-    # ボーナス枠はSKIP_CHANCEの確率でスキップ（メイン枠は0=必ず実行）
     skip_chance = float(os.environ.get("SKIP_CHANCE", "0"))
     if random.random() < skip_chance:
         print("今日はスキップします")
         return
 
-    # コミット数: 1が一番多く、4は稀（草の濃さのばらつき）
     count = random.choices([1, 2, 3, 4], weights=[40, 30, 20, 10])[0]
     print(f"今日は {count} 個生成します")
 
@@ -108,7 +102,6 @@ def main() -> None:
         run(["git", "commit", "-m", commit_msg])
         print(f"コミット: {commit_msg}")
 
-    # 他の並行実行と競合しないようにrebase付きでpush
     run(["git", "pull", "--rebase"])
     run(["git", "push"])
     print(f"\n完了！{count} 個のプログラムをコミットしました")
