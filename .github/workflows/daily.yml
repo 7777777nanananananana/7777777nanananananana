@@ -1,0 +1,48 @@
+name: Daily Program Generation
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 07:00 JST  メイン枠（毎日必ず実行）
+    - cron: '0 0 * * *'    # 09:00 JST  ボーナス枠
+    - cron: '30 4 * * *'   # 13:30 JST  ボーナス枠
+    - cron: '0 9 * * *'    # 18:00 JST  ボーナス枠
+    - cron: '0 14 * * *'   # 23:00 JST  ボーナス枠
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      # メイン枠: 07:00 JST または手動実行（必ずコミット）
+      - name: Generate (main)
+        if: github.event.schedule == '0 22 * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SKIP_CHANCE: '0'
+        run: |
+          git config user.email "7nana7nana7nana777@gmail.com"
+          git config user.name "seven"
+          python generate.py
+
+      # ボーナス枠: 35%の確率でコミット（スクリプト内でランダム決定）
+      - name: Generate (bonus)
+        if: github.event.schedule != '0 22 * * *' && github.event_name != 'workflow_dispatch'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SKIP_CHANCE: '0.65'
+        run: |
+          git config user.email "7nana7nana7nana777@gmail.com"
+          git config user.name "seven"
+          python generate.py
